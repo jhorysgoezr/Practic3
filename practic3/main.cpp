@@ -15,7 +15,9 @@ void decodificarArchivo(const string& nombreArchivoEntrada, const string& nombre
                         int n, int metodo );
 string encriptarClave(const& claveOriginal, int metodo );
 string desencriptarClave(const string& claveEncriptada,int metodo);
-
+bool validarAccesoAdministrador();
+void registrarUsuario();
+void mostrarUsuarios();
 
 
 int main()
@@ -192,4 +194,102 @@ string desencriptarClave(const string& claveEncriptada,int metodo ){
         claveDesencriptada += static_cast<char>(valor);
     }
     return claveDesencriptada;
+}
+
+bool validarAccesoAdministrador(){
+    const string nombreArchivoClave ="sudo.txt";
+
+    ifstream archivoClave(nombreArchivoClave);
+
+    if(!archivoClave.is_open()){
+        cout<<"Error al abrir el archivo de claves."<<endl;
+        return false;
+    }
+
+    string claveEncriptada;
+    getline(archivoClave, claveEncriptada);
+    archivoClave.close();
+
+    string claveIngresada;
+    cout<<"Ingrese la clave de administrador: ";
+    cin>>claveIngresada;
+
+    int metodoSeleccionado = 1;
+    string claveIngresadaEncriptada = encriptarClave(claveIngresada, metodoSeleccionado);
+
+    if (claveIngresadaEncriptada == claveEncriptada){
+        cout<<"Clave correcta."<<endl;
+        return true;
+    }
+    else {
+        cout<<"Clave incorrecta."<<endl;
+        return false;
+    }
+}
+
+void registrarUsuario(){
+    string cedula, clave;
+    double saldo;
+    const string archivoUsuarios = "usuarios.txt";
+
+    cout<<"\nRegistro de nuevo usuario"<<endl;
+    cout<<"Ingrese numero de cedula: ";
+    cin>>cedula;
+    cout<<"Ingrese clave del usuario: ";
+    cin>>clave;
+    cout<<"Ingrese el saldo incial (COP): ";
+    cin>>saldo;
+
+    stringstream ss;
+    ss <<cedula<<","<<clave<<","<<saldo;
+    string datosUsuario = ss.str();
+
+    string datosEncriptados = encriptarClave(datosUsuario, 1);
+
+    ofstream archivo(archivoUsuarios, ios::app);
+    if(!archivo){
+        cout<<"Error al abrir el archivo de usuarios."<<endl;
+        return;
+    }
+
+    archivo <<datosEncriptados << endl;
+    archivo.close();
+
+    cout<<"Usuario registrado exitosamente."<<endl;
+}
+
+void mostrarUsuarios(){
+    const string archivoUsuarios ="usuarios.txt";
+    ifstream archivo(archivoUsuarios);
+
+    if(!archivo){
+        cout<<"No hay usuarios registrados."<<endl;
+        return;
+    }
+
+    string lineaEncriptada;
+    int contador = 1;
+
+    cout<<"\nListado de usuarios registrados:"<<endl;
+    cout<<"---------------------------------"<<endl;
+
+    while(getline(archivo, lineaEncriptada)){
+        string lineaDesencriptada = desencriptarClave(lineaEncriptada, 1);
+
+        stringstream ss(lineaDesencriptada);
+        string cedula, clave, saldo;
+
+        getline(ss, cedula, ',');
+        getline(ss, clave, ',');
+        getline(ss, saldo, ',');
+
+        cout<<"Usuario: "<<contador<<":"<<endl;
+        cout<<"Cedula: "<<cedula<<endl;
+        cout<<"Saldo: "<<saldo<<" COP"<<endl;
+        cout<<"--------------------------"<<endl;
+
+        contador++;
+    }
+
+    archivo.close();
 }
