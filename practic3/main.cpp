@@ -23,6 +23,9 @@ void actualizarSaldo(const string& cedula, double nuevoSaldo);
 double obtenerSaldo(const string& cedula);
 void mostrarSaldo(const string& cedula);
 void realizarRetiro(const string& cedula);
+void menuUsuario(const string& cedula);
+void menuAdministrador();
+void entrarAplicacionBanco();
 
 
 int main()
@@ -448,5 +451,110 @@ void realizarRetiro(const string& cedula) {
     } else {
         cout << "Saldo insuficiente para realizar el retiro." << endl;
         cout << "Recuerde que cada transaccion tiene un costo de $1000 COP." << endl;
+    }
+}
+
+// Función de menú del usuario
+void menuUsuario(const string& cedula) {
+    int opcion;
+
+    while (true) {
+        cout << "\nPanel de Usuario" << endl;
+        cout << "1. Consultar saldo" << endl;
+        cout << "2. Realizar retiro" << endl;
+        cout << "3. Volver al menu principal" << endl;
+        cout << "Seleccione una opcion: ";
+
+        cin >> opcion;
+
+        switch (opcion) {
+        case 1:
+            mostrarSaldo(cedula);
+            break;
+
+        case 2:
+            realizarRetiro(cedula);
+            break;
+
+        case 3:
+            cout << "Volviendo al menu principal..." << endl;
+            return;
+
+        default:
+            cout << "Opcion no valida." << endl;
+            break;
+        }
+    }
+}
+
+// Función de menú del administrador
+void menuAdministrador() {
+    int opcion;
+
+    while (true) {
+        cout << "\nPanel de Administrador" << endl;
+        cout << "1. Registrar nuevo usuario" << endl;
+        cout << "2. Ver usuarios registrados" << endl;
+        cout << "3. Volver al menu principal" << endl;
+        cout << "Seleccione una opcion: ";
+
+        cin >> opcion;
+
+        switch (opcion) {
+        case 1:
+            registrarUsuario();
+            break;
+
+        case 2:
+            mostrarUsuarios();
+            break;
+
+        case 3:
+            cout << "Volviendo al menu principal..." << endl;
+            return;
+
+        default:
+            cout << "Opcion no valida." << endl;
+            break;
+        }
+    }
+}
+
+void entrarAplicacionBanco() {
+    int opcion;
+
+    while (true) {
+        cout << "\nSeleccione una opcion:" << endl;
+        cout << "1. Acceder como Administrador" << endl;
+        cout << "2. Acceder como Usuario" << endl;
+        cout << "3. Salir" << endl;
+
+        cin >> opcion;
+
+        switch (opcion) {
+        case 1:
+            if(validarAccesoAdministrador()) {
+                menuAdministrador();
+            }
+            break;
+
+        case 2:
+        {
+            string cedulaUsuario;
+            if (iniciarSesionUsuario(cedulaUsuario)) {
+                cout << "Inicio de sesion exitoso." << endl;
+                menuUsuario(cedulaUsuario);
+            }
+        }
+        break;
+
+        case 3:
+            cout << "Saliendo de la aplicacion bancaria..." << endl;
+            return;
+
+        default:
+            cout << "Opcion no valida. Intente nuevamente." << endl;
+            break;
+        }
     }
 }
