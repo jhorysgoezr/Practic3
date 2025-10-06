@@ -18,6 +18,11 @@ string desencriptarClave(const string& claveEncriptada,int metodo);
 bool validarAccesoAdministrador();
 void registrarUsuario();
 void mostrarUsuarios();
+bool iniciarSesionUsuario(string& cedulaUsuario);
+void actualizarSaldo(const string& cedula, double nuevoSaldo);
+double obtenerSaldo(const string& cedula);
+void mostrarSaldo(const string& cedula);
+void realizarRetiro(const string& cedula);
 
 
 int main()
@@ -292,4 +297,156 @@ void mostrarUsuarios(){
     }
 
     archivo.close();
+}
+
+bool iniciarSesionUsuario(string& cedulaUsuario){
+    string cedula, clave;
+    cout<<"Ingrese su numero de cedula: ";
+    cin>>cedula;
+    cout<<"Ingrese su numero de clave: ";
+    cin>>clave;
+
+    const string archivoUsuarios = "usuarios.txt";
+    ifstream archivo(archivoUsuarios);
+
+    if(!archivo){
+        cout<<"Error al abrir el archivo de usuairos."<<endl;
+        return false;
+    }
+
+    string lineaEncriptada;
+    while (getline(archivo, lineaEncriptada)){
+        string lineaDesencriptada = desencriptarClave(lineaEncriptada, 1);
+        stringstream ss(lineaDesencriptada);
+        string cedulaArchivo, claveArchivo;
+
+        getline(ss, cedulaArchivo, ',');
+        getline(ss, claveArchivo, ',');
+
+        if (cedula == cedulaArchivo && clave==claveArchivo){
+            cedulaUsuario = cedula;
+            archivo.close();
+            return true;
+        }
+    }
+    archivo.close();
+    cout<<"Credenciales incorrectas."<<endl;
+    return false;
+}
+
+void actualizarSaldo(const string& cedula, double nuevoSaldo) {
+    const string archivoUsuarios = "usuarios.txt";
+    const string archivoTemp = "temp.txt";
+    ifstream archivo(archivoUsuarios);
+    ofstream archivoTemporal(archivoTemp);
+
+    if (!archivo || !archivoTemporal) {
+        cout << "Error al acceder a los archivos." << endl;
+        return;
+    }
+
+    string lineaEncriptada;
+    while (getline(archivo, lineaEncriptada)) {
+        string lineaDesencriptada = desencriptarClave(lineaEncriptada, 1);
+        stringstream ss(lineaDesencriptada);
+        string cedulaArchivo, clave, saldoStr;
+
+        getline(ss, cedulaArchivo, ',');
+        getline(ss, clave, ',');
+        getline(ss, saldoStr, ',');
+
+        if (cedula == cedulaArchivo) {
+            // Crear nueva línea con saldo actualizado
+            stringstream nuevaLinea;
+            nuevaLinea << cedulaArchivo << "," << clave << "," << nuevoSaldo;
+            string lineaNueva = nuevaLinea.str();
+            string lineaNuevaEncriptada = encriptarClave(lineaNueva, 1);
+            archivoTemporal << lineaNuevaEncriptada << endl;
+        } else {
+            archivoTemporal << lineaEncriptada << endl;
+        }
+    }
+
+    archivo.close();
+    archivoTemporal.close();
+
+    // Reemplazar el archivo original con el temporal
+    remove(archivoUsuarios.c_str());
+    rename(archivoTemp.c_str(), archivoUsuarios.c_str());
+}
+
+// Función para obtener el saldo actual
+double obtenerSaldo(const string& cedula) {
+    const string archivoUsuarios = "usuarios.txt";
+    ifstream archivo(archivoUsuarios);
+
+    if (!archivo) {
+        cout << "Error al abrir el archivo de usuarios." << endl;
+        return -1;
+    }
+
+    string lineaEncriptada;
+    while (getline(archivo, lineaEncriptada)) {
+        string lineaDesencriptada = desencriptarClave(lineaEncriptada, 1);
+        stringstream ss(lineaDesencriptada);
+        string cedulaArchivo, clave, saldoStr;
+
+        getline(ss, cedulaArchivo, ',');
+        getline(ss, clave, ',');
+        getline(ss, saldoStr, ',');
+
+        if (cedula == cedulaArchivo) {
+            archivo.close();
+            return stod(saldoStr);
+        }
+    }
+
+    archivo.close();
+    return -1;
+}
+
+// Función modificada para mostrar el saldo
+void mostrarSaldo(const string& cedula) {
+    double saldoActual = obtenerSaldo(cedula);
+    if (saldoActual >= 0) {
+        // Cobrar comisión por consulta
+        double nuevoSaldo = saldoActual - 1000;
+        if (nuevoSaldo >= 0) {
+            actualizarSaldo(cedula, nuevoSaldo);
+            cout << "Saldo anterior: $" << saldoActual << " COP" << endl;
+            cout << "Cargo por consulta: $1000 COP" << endl;
+            cout << "Saldo actual: $" << nuevoSaldo << " COP" << endl;
+        } else {
+            cout << "Saldo insuficiente para realizar la consulta." << endl;
+        }
+    } else {
+        cout << "Error: No se encontro la informacion del usuario." << endl;
+    }
+}
+
+// Función para realizar retiro
+void realizarRetiro(const string& cedula) {
+    double saldoActual = obtenerSaldo(cedula);
+    if (saldoActual < 0) {
+        cout << "Error al obtener el saldo." << endl;
+        return;
+    }
+
+    double montoRetiro;
+    cout << "Ingrese el monto a retirar: $";
+    cin >> montoRetiro;
+
+    // Verificar si hay saldo suficiente (incluyendo la comisión)
+    if (saldoActual >= (montoRetiro + 1000)) {
+        double nuevoSaldo = saldoActual - montoRetiro - 1000;
+        actualizarSaldo(cedula, nuevoSaldo);
+        cout << "\nTransacción exitosa:" << endl;
+        cout << "Saldo anterior: $" << saldoActual << " COP" << endl;
+        cout << "Monto retirado: $" << montoRetiro << " COP" << endl;
+        cout << "Cargo por transaccion: $1000 COP" << endl;
+        cout << "Saldo actual: $" << nuevoSaldo << " COP" << endl;
+    } else {
+        cout << "Saldo insuficiente para realizar el retiro." << endl;
+        cout << "Recuerde que cada transaccion tiene un costo de $1000 COP." << endl;
+    }
 }
