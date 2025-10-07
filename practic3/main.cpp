@@ -30,11 +30,79 @@ void entrarAplicacionBanco();
 
 int main()
 {
-    cout << "Hello World!" << endl;
+    string nombreArchivoEntrada, nombreArchivoSalida;
+    int n, metodo, operacion;
+
+    while (true) {
+        cout << "\nSeleccione una operacion:" << endl;
+        cout << "1. Codificar" << endl;
+        cout << "2. Decodificar" << endl;
+        cout << "3. Entrar a la aplicacion del banco" << endl;
+        cout << "4. Salir" << endl;
+
+        cin >> operacion;
+
+        switch (operacion) {
+        case 1:
+            cout << "Ingrese el nombre del archivo de entrada: ";
+            cin >> nombreArchivoEntrada;
+
+            cout << "Ingrese el nombre del archivo de salida: ";
+            cin >> nombreArchivoSalida;
+
+            cout << "Ingrese el tamano de los bloques (n): ";
+            cin >> n;
+
+            if (n <= 0) {
+                cout << "El tamano de los bloques debe ser mayor que 0." << endl;
+                break;
+            }
+
+            cout << "Seleccione el metodo de codificacion (1 para invertir bits, 2 para desplazar bits): ";
+            cin >> metodo;
+
+            leerArchivoYConvertirEnBloques(nombreArchivoEntrada, nombreArchivoSalida, n, metodo);
+            break;
+
+        case 2:
+            cout << "Ingrese el nombre del archivo de entrada: ";
+            cin >> nombreArchivoEntrada;
+
+            cout << "Ingrese el nombre del archivo de salida: ";
+            cin >> nombreArchivoSalida;
+
+            cout << "Ingrese el tamano de los bloques (n): ";
+            cin >> n;
+
+            if (n <= 0) {
+                cout << "El tamano de los bloques debe ser mayor que 0." << endl;
+                break;
+            }
+
+            cout << "Seleccione el metodo de decodificacion (1 para invertir bits, 2 para desplazar bits): ";
+            cin >> metodo;
+
+            decodificarArchivo(nombreArchivoEntrada, nombreArchivoSalida, n, metodo);
+            break;
+
+        case 3:
+            entrarAplicacionBanco();
+            break;
+
+        case 4:
+            cout << "Saliendo..." << endl;
+            return 0;
+
+        default:
+            cout << "Operacion no valida. Intente nuevamente." << endl;
+            break;
+        }
+    }
+
     return 0;
 }
 
-// Función para convertir un carácter ASCII en su representación binaria de 8 bits
+
 void convertirABinario(int numero, char* binario) {
     for (int i = 7; i >= 0; --i) {
         binario[7 - i] = (numero & (1 << i)) ? '1' : '0';
@@ -42,14 +110,14 @@ void convertirABinario(int numero, char* binario) {
     binario[8] = '\0';
 }
 
-// funcion para invertir bits
+
 void invertirBits(char* bloque, int tamanio) {
     for (int i = 0; i < tamanio; ++i) {
         bloque[i] = (bloque[i] == '1') ? '0' : '1';
     }
 }
 
-// funcion para desplazar bits hacia la izquierda
+
 void desplazarBits(char* bloque, int tamanio) {
     if (tamanio <= 1) return;
 
@@ -60,7 +128,7 @@ void desplazarBits(char* bloque, int tamanio) {
     bloque[tamanio - 1] = temp;
 }
 
-// funcion para desplazar bits hacia la derecha (para decodificación)
+
 void desplazarBitsDerecha(char* bloque, int tamanio) {
     if (tamanio <= 1) return;
 
@@ -71,7 +139,7 @@ void desplazarBitsDerecha(char* bloque, int tamanio) {
     bloque[0] = temp;
 }
 
-//funcion para leer el archivo y convertirlo en bloques
+
 void leerArchivoYConvertirEnBloques(const string& nombreArchivoEntrada, const string& nombreArchivoSalida,
                                     int n, int metodo ){
     ifstream archivo(nombreArchivoEntrada, ios::in);
@@ -117,7 +185,7 @@ void leerArchivoYConvertirEnBloques(const string& nombreArchivoEntrada, const st
     archivoSalida.close();
 }
 
-//Funcion para decodificar archivo
+
 void decodificarArchivo(const string& nombreArchivoEntrada, const string& nombreArchivoSalida,
                         int n, int metodo ){
     ifstream archivo(nombreArchivoEntrada, ios::in);
@@ -359,7 +427,6 @@ void actualizarSaldo(const string& cedula, double nuevoSaldo) {
         getline(ss, saldoStr, ',');
 
         if (cedula == cedulaArchivo) {
-            // Crear nueva línea con saldo actualizado
             stringstream nuevaLinea;
             nuevaLinea << cedulaArchivo << "," << clave << "," << nuevoSaldo;
             string lineaNueva = nuevaLinea.str();
@@ -373,12 +440,12 @@ void actualizarSaldo(const string& cedula, double nuevoSaldo) {
     archivo.close();
     archivoTemporal.close();
 
-    // Reemplazar el archivo original con el temporal
+
     remove(archivoUsuarios.c_str());
     rename(archivoTemp.c_str(), archivoUsuarios.c_str());
 }
 
-// Función para obtener el saldo actual
+
 double obtenerSaldo(const string& cedula) {
     const string archivoUsuarios = "usuarios.txt";
     ifstream archivo(archivoUsuarios);
@@ -408,11 +475,10 @@ double obtenerSaldo(const string& cedula) {
     return -1;
 }
 
-// Función modificada para mostrar el saldo
+
 void mostrarSaldo(const string& cedula) {
     double saldoActual = obtenerSaldo(cedula);
     if (saldoActual >= 0) {
-        // Cobrar comisión por consulta
         double nuevoSaldo = saldoActual - 1000;
         if (nuevoSaldo >= 0) {
             actualizarSaldo(cedula, nuevoSaldo);
@@ -427,7 +493,7 @@ void mostrarSaldo(const string& cedula) {
     }
 }
 
-// Función para realizar retiro
+
 void realizarRetiro(const string& cedula) {
     double saldoActual = obtenerSaldo(cedula);
     if (saldoActual < 0) {
@@ -439,7 +505,7 @@ void realizarRetiro(const string& cedula) {
     cout << "Ingrese el monto a retirar: $";
     cin >> montoRetiro;
 
-    // Verificar si hay saldo suficiente (incluyendo la comisión)
+
     if (saldoActual >= (montoRetiro + 1000)) {
         double nuevoSaldo = saldoActual - montoRetiro - 1000;
         actualizarSaldo(cedula, nuevoSaldo);
@@ -454,7 +520,7 @@ void realizarRetiro(const string& cedula) {
     }
 }
 
-// Función de menú del usuario
+
 void menuUsuario(const string& cedula) {
     int opcion;
 
@@ -487,7 +553,7 @@ void menuUsuario(const string& cedula) {
     }
 }
 
-// Función de menú del administrador
+
 void menuAdministrador() {
     int opcion;
 
@@ -558,3 +624,5 @@ void entrarAplicacionBanco() {
         }
     }
 }
+
+//profe el metodo para el tema de la clave del banco encriptada es el 1 y la semilla 8
